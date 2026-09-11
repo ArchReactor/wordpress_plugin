@@ -227,10 +227,10 @@ class ArchReactorMembership
     public static function render_status()
     {
         $status = [
-            'waiver' => '<img src="/img/stop_32.png" />',
-            'agreement' => '<img src="/img/stop_32.png" />',
-            'vgood' => '<img src="/img/stop_32.png" />',
-            'wifi' => 'ARGuest: orangewalls',
+            'waiver' => '<img src="' . esc_url( plugins_url( 'assets/tick_32.png', __FILE__ ) ) . '" />',
+            'agreement' => '<img src="' . esc_url( plugins_url( 'assets/stop_32.png', __FILE__ ) ) . '" />',
+            'vgood' => '<img src="' . esc_url( plugins_url( 'assets/stop_32.png', __FILE__ ) ) . '" />',
+            'wifi' => get_option('archreactor_guest_wifi') . ': '. get_option('archreactor_guest_wifi_password'),
             'discord' => 'Membership required',
             'calendar' => 'Membership required',
         ];

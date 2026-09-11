@@ -1,0 +1,38 @@
+# Architecture & OS files
+.DS_Store
+Thumbs.db
+*.bak
+*.swp
+
+# Build & Dependency Directories
+node_modules/
+bower_components/
+vendor/
+dist/
+build/
+
+# Compilation & Cache files
+*.log
+.sass-cache/
+.eslintcache
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# WordPress Plugin Specifics
+# Ignore localized language files if you manage them via an external tool (like GlotPress)
+# languages/*.mo
+# languages/*.po
+
+# Unit Testing & CI/CD tools
+/tests/vendor/
+/phpunit.xml

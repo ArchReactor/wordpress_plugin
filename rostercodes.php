@@ -9,8 +9,8 @@ class ArchReactorRoster
 {
     public static function init()
     {
-        add_shortcode('archreactor_rosterfile', array(__CLASS__, 'send_rosterfile'));
-        add_shortcode('archreactor_rosterrfid', array(__CLASS__, 'render_rfid'));
+        add_shortcode('archreactor_rosterfile', [__CLASS__, 'send_rosterfile']);
+        add_shortcode('archreactor_rosterrfid', [__CLASS__, 'render_rfid']);
     }
 
     public static function rosterfile($file){
@@ -25,12 +25,8 @@ class ArchReactorRoster
         return self::rosterfile($atts["file"]);
     }
 
-    public static function render_rfid()
+    private static function roster_data()
     {
-        $cid = CRM_Core_Session::singleton()->getLoggedInContactID();
-        //no contact?
-        if ($cid == null) return null;
-
         $fails = \Civi\Api4\Activity::get(FALSE)
             ->addSelect('subject', 'activity_date_time')
             ->addWhere('activity_type_id', '=', 69)
@@ -46,6 +42,19 @@ class ArchReactorRoster
             ->addWhere('status_id', '=', 2)
             ->addOrderBy('activity_date_time', 'DESC')
             ->execute();
+
+        return array('fails' => $fails, 'activities' => $activities);
+    }
+
+    public static function render_rfid()
+    {
+        $cid = CRM_Core_Session::singleton()->getLoggedInContactID();
+        //no contact?
+        if ($cid == null) return null;
+
+        $data = self::roster_data();
+        $fails = $data['fails'];
+        $activities = $data['activities'];
 
         ob_start();
 ?>

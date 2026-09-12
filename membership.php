@@ -9,12 +9,12 @@ class ArchReactorMembership
 {
     public static function init()
     {
-        add_shortcode('archreactor_groups', array(__CLASS__, 'render_groups'));
-        add_shortcode('archreactor_status', array(__CLASS__, 'render_status'));
-        add_shortcode('archreactor_membershiprow', array(__CLASS__, 'render_membership'));
-        add_shortcode('archreactor_contrib', array(__CLASS__, 'render_contrib'));
-        add_shortcode('archreactor_hours', array(__CLASS__, 'render_hours'));
-        add_shortcode('archreactor_dashui', array(__CLASS__, 'render_dashboard_ui'));
+        add_shortcode('archreactor_groups', [__CLASS__, 'render_groups']);
+        add_shortcode('archreactor_status', [__CLASS__, 'render_status']);
+        add_shortcode('archreactor_membershiprow', [__CLASS__, 'render_membership']);
+        add_shortcode('archreactor_contrib', [__CLASS__, 'render_contrib']);
+        add_shortcode('archreactor_hours', [__CLASS__, 'render_hours']);
+        add_shortcode('archreactor_dashui', [__CLASS__, 'render_dashboard_ui']);
     }
 
     public static function render_membership()

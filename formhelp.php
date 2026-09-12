@@ -8,9 +8,9 @@ class ArchReactorFormHelp {
         //allows contact7 forms to use shortcodes
         add_filter( 'wpcf7_form_elements', 'do_shortcode' );
 
-        add_shortcode('archreactor_idfield', array(__CLASS__, 'generate_idfields'));
-        add_shortcode('archreactor_hours2minutes', array(__CLASS__, 'render_hours2minutes'));
-        add_shortcode('archreactor_lookupaddress', array(__CLASS__, 'lookup_address'));
+        add_shortcode('archreactor_idfield', [__CLASS__, 'generate_idfields']);
+        add_shortcode('archreactor_hours2minutes', [__CLASS__, 'render_hours2minutes']);
+        add_shortcode('archreactor_lookupaddress', [__CLASS__, 'lookup_address']);
 
     }
 

@@ -7,8 +7,8 @@ $text   = get_option('archreactor_members_wifi', 'default');
 class ArchReactorAdmin
 {
     public static function init() {
-        add_action('admin_menu', array(__CLASS__, 'add_admin_menu'));
-        add_action('admin_init', array(__CLASS__, 'settings_init'));
+        add_action('admin_menu', [__CLASS__, 'add_admin_menu']);
+        add_action('admin_init', [__CLASS__, 'settings_init']);
     }
 
     public static function add_admin_menu() {
@@ -17,7 +17,7 @@ class ArchReactorAdmin
             'Archreactor',              
             'manage_options',
             'archreactor_settings',
-            array(__CLASS__, 'settings'),
+            [__CLASS__, 'settings'],
             1
         );
     }
@@ -40,13 +40,13 @@ class ArchReactorAdmin
         add_settings_section(
             'archreactor_section_dashboard',
             'Dashboard Settings',
-            array(__CLASS__, 'dashboard_callback'),
+            [__CLASS__, 'dashboard_callback'],
             'archreactor-settings-dashboard'
         );
         add_settings_section(
             'archreactor_section_paypal',
             'PayPal Settings',
-            array(__CLASS__, 'paypal_callback'),
+            [__CLASS__, 'paypal_callback'],
             'archreactor-settings-paypal'
         );
 
@@ -59,7 +59,7 @@ class ArchReactorAdmin
             add_settings_field(
                 $name,
                 $title,
-                array(__CLASS__, 'render_input'),
+                [__CLASS__, 'render_input'],
                 'archreactor-settings-dashboard',
                 'archreactor_section_dashboard',
                 array('name' => $name, 'type' => $type)
@@ -74,7 +74,7 @@ class ArchReactorAdmin
             add_settings_field(
                 $name,
                 $title,
-                array(__CLASS__, 'render_input'),
+                [__CLASS__, 'render_input'],
                 'archreactor-settings-paypal',
                 'archreactor_section_paypal',
                 array('name' => $name, 'type' => $type)

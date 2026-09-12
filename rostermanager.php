@@ -4,11 +4,11 @@ class ArchReactorRosterManager {
 
     public static function init() {
 
-        add_action( 'init', array(__CLASS__, 'add_rewrite_rule' ) );
+        add_action( 'init', [__CLASS__, 'add_rewrite_rule' ]);
         // Flush rewrite rules on activation so the user doesn't have to resave permalinks
-        register_activation_hook( __FILE__, array(__CLASS__, 'flush_rewrites' ) );
+        register_activation_hook( __FILE__, [__CLASS__, 'flush_rewrites' ] );
         // 2. Intercept the main query and inject a virtual WP_Post object
-        add_filter( 'the_posts', array(__CLASS__, 'inject_virtual_post' ), 10, 2 );
+        add_filter( 'the_posts', [__CLASS__, 'inject_virtual_post' ], 10, 2 );
     }
 
     public static function add_rewrite_rule() {

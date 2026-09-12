@@ -8,7 +8,7 @@ class ArchReactorPaypal
 {
     public static function init()
     {
-        add_shortcode('archreactor_paypalcancel', array(__CLASS__, 'paypalcancel'));
+        add_shortcode('archreactor_paypalcancel', [__CLASS__, 'paypalcancel']);
     }
 
     public static function paypalcancel($atts, $content = null)

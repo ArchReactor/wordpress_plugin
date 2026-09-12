@@ -9,6 +9,19 @@ class ArchReactorRosterManager {
         register_activation_hook( __FILE__, [__CLASS__, 'flush_rewrites' ] );
         // 2. Intercept the main query and inject a virtual WP_Post object
         add_filter( 'the_posts', [__CLASS__, 'inject_virtual_post' ], 10, 2 );
+
+        //javascript and ajax registration
+        add_action('wp_ajax_archreactor_roster_rfid', [__CLASS__, 'rfid_json']);
+        add_action('wp_enqueue_scripts', function() {
+            wp_enqueue_script('archreactor-roster', plugins_url('js/roster.js', __FILE__), ['jquery'], '1.0', true);
+            wp_enqueue_script( 'datatables-js', '//cdn.datatables.net/2.3.7/js/dataTables.min.js', array( 'jquery' ) );
+            wp_enqueue_style( 'datatables-style', '//cdn.datatables.net/2.3.7/css/dataTables.dataTables.min.css' );
+    
+            wp_localize_script('archreactor-roster', 'archreactor_roster_vars', [
+                'ajaxurl' => admin_url('admin-ajax.php'),
+                'nonce'   => wp_create_nonce('archreactor_roster_nonce')
+            ]);
+        });
     }
 
     public static function add_rewrite_rule() {
@@ -91,24 +104,58 @@ class ArchReactorRosterManager {
 
     public static function rfid_data()
     {
+        $nfails = 10;
+        $nmonths = 6; 
         $fails = \Civi\Api4\Activity::get(FALSE)
             ->addSelect('subject', 'activity_date_time')
-            ->addWhere('activity_type_id', '=', 69)
-            ->addWhere('status_id', '=', 3)
+            ->addWhere('activity_type_id', '=', 69) //69=RFID 
+            ->addWhere('status_id', '=', 3) //canceled, used as failed
             ->addOrderBy('activity_date_time', 'DESC')
-            ->setLimit(10)
+            ->setLimit($nfails)
             ->execute();
         $activities = \Civi\Api4\Activity::get(FALSE)
             ->addSelect('contact.sort_name', 'subject', 'activity_date_time')
-            ->addJoin('Contact AS contact', 'LEFT', 'ActivityContact', ['contact.record_type_id', '=', 1]) //1 limits the contact type on the activity
-            ->addWhere('activity_date_time', '>', '-6 months')
+            ->addJoin('Contact AS contact', 'LEFT', 'ActivityContact', ['contact.record_type_id', '=', 1]) //1 limits the contact to the Assignee
+            ->addWhere('activity_date_time', '>', '-' . $nmonths . ' months')
             ->addWhere('activity_type_id', '=', 69) //69=RFID 
-            ->addWhere('status_id', '=', 2)
+            ->addWhere('status_id', '=', 2) //completed
             ->addOrderBy('activity_date_time', 'DESC')
             ->execute();
 
-        return array('fails' => $fails, 'activities' => $activities);
+        $timezone = new DateTimeZone('America/Chicago');
+        $date = new DateTime('now', $timezone);
+
+        return array(
+            'fails' => array_map(function($row) {
+                return [
+                    'id' => $row['id'],
+                    'subject' => $row['subject'], 
+                    'activity_date_time' => date_i18n("Y-m-d g:i:s A", date_create($row['activity_date_time'])->getTimestamp())
+                ];
+            }, (array) $fails),
+            'activities' => array_map(function($row) {
+                return [
+                    'id' => $row['id'],
+                    'name' => $row['contact.sort_name'],
+                    'subject' => $row['subject'], 
+                    'activity_date_time' => date_i18n("Y-m-d g:i:s A", date_create($row['activity_date_time'])->getTimestamp())
+                ];
+            }, (array) $activities), 
+            'updated' => $date->format("Y-m-d g:i:s A"), 
+            'numfails' => $nfails, 'nummonths' => $nmonths
+        );
     }
 
+    public static function rfid_json()
+    {
+        //verify nonce for security
+        check_ajax_referer('archreactor_roster_nonce', 'security');
 
+        if (!current_user_can('membership-management')) {
+            wp_send_json_error('Unauthorized');
+        }
+
+        $data = self::rfid_data();
+        wp_send_json_success($data);
+    }
 }

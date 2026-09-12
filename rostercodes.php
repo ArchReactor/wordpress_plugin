@@ -10,7 +10,7 @@ class ArchReactorRoster
     public static function init()
     {
         add_shortcode('archreactor_rosterfile', [__CLASS__, 'send_rosterfile']);
-        add_shortcode('archreactor_rosterrfid', [__CLASS__, 'render_rfid']);
+        //add_shortcode('archreactor_rosterrfid', [__CLASS__, 'render_rfid']);
     }
 
     public static function rosterfile($file){
@@ -25,6 +25,7 @@ class ArchReactorRoster
         return self::rosterfile($atts["file"]);
     }
 
+/*
     public static function render_rfid()
     {
         $cid = CRM_Core_Session::singleton()->getLoggedInContactID();
@@ -34,15 +35,16 @@ class ArchReactorRoster
         $data = ArchReactorRosterManager::rfid_data();
         $fails = $data['fails'];
         $activities = $data['activities'];
+        $updated = $data['updated'];
+        $nfails = $data['numfails'];
+        $nmonths = $data['nummonths'];
 
-        $timezone = new DateTimeZone('America/Chicago');
-        $date = new DateTime('now', $timezone);
         ob_start();
 ?>
         
     <div>
-        Last 10 failures and all lockout access last 6 months <br />
-        Last updated: <?php echo $date->format("Y-m-d H:i:s"); ?>
+        Last <span id="rfid_nfails"><?php echo $nfails; ?></span> failures and all lockout access last <span id="rfid_nmonths"><?php echo $nmonths; ?></span> months <br />
+        Last updated: <span id="rfid_updated"><?php echo $updated; ?></span>
     </div>
     <div style="display: flex; gap: 20px;">
     <?php
@@ -58,7 +60,7 @@ class ArchReactorRoster
         $passtbl = array();
         foreach ($activities as $activity) {
             $passtbl[] = [
-                'name' => $activity['contact.sort_name'],
+                'name' => $activity['name'],
                 'subject' => $activity['subject'],
                 'datetime' => date_i18n("Y-m-d g:i:s A", date_create($activity['activity_date_time'])->getTimestamp())
             ];
@@ -70,5 +72,5 @@ class ArchReactorRoster
     <?php
         return ob_get_clean();
     }
-
+*/
 }

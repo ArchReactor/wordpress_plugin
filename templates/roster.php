@@ -40,8 +40,19 @@ if ( ! defined( 'ABSPATH' ) ) {
         </div>
 
         <div id="rfid">
-            <p><a href="/scripts/updatelocks.php" data-type="link" data-id="/scripts/updatelocks.php" rel="noreferrer noopener">Update Lockouts (now works remote via restricted tunnel)</a></p>
-            <?php echo ArchReactorRoster::render_rfid(); ?>
+            <p>
+                <a href="/scripts/updatelocks.php" data-type="link" data-id="/scripts/updatelocks.php" rel="noreferrer noopener">Update Lockouts (now works remote via restricted tunnel)</a>
+                &nbsp; <button id="refresh-rfid" type="button">Refresh</button>
+            </p>
+
+            <div>
+                Last <span id="rfid_nfails"></span> failures and all lockout access last <span id="rfid_nmonths"></span> months <br />
+                Last updated: <span id="rfid_updated"></span>
+            </div>
+            <div style="display: flex; gap: 20px;">
+                <table id='rosterrfidfail' class='ux-cv-listing civicrm-ux-roster'><thead></thead><tbody></tbody></table>
+                <table id='rosterrfid' class='ux-cv-listing civicrm-ux-roster'><thead></thead><tbody></tbody></table>
+            </div>
         </div>
     </div>
     <!-- /wp:paragraph -->
@@ -73,49 +84,4 @@ if ( ! defined( 'ABSPATH' ) ) {
     }
 </style>
 
-<script type="text/javascript" src="//cdn.datatables.net/2.3.7/js/dataTables.min.js" id="datatable-js-js"></script>
-<link rel="stylesheet" href="//cdn.datatables.net/2.3.7/css/dataTables.dataTables.min.css">
-<script type="text/javascript" src="/scripts/js/roster.js" id="roster-js"></script>
-
-<script type="text/javascript" >
-    var $tabs;
-    console.log("Initializing tabs for #archreactor-roster");
-    jQuery(document).ready(function($) {
-        $tabs = $('#archreactor-roster').tabs({
-            // Triggered every time a new tab is activated
-            activate: function(event, ui) {
-                // ui.newTab is the list item (<li>), ui.newTab.find('a') gets the anchor
-                var hash = ui.newTab.find('a').attr('href');
-                
-                // Update the URL hash without triggering a page jump
-                if (history.pushState) {
-                    history.pushState(null, null, hash);
-                } else {
-                    window.location.hash = hash; // Fallback for very old browsers
-                }
-            }
-        });
-        var hash = window.location.hash;
-        if (hash) {
-            // Find the index of the tab anchor matching the hash
-            var index = $tabs.find('a[href="' + hash + '"]').parent().index();
-            
-            // If a matching tab is found, activate it
-            if (index !== -1) {
-                $tabs.tabs('option', 'active', index);
-            }
-        }
-
-        $(window).on('hashchange', function() {
-            var hash = window.location.hash;
-            if (hash) {
-                var index = $tabs.find('a[href="' + hash + '"]').parent().index();
-                if (index !== -1) {
-                    $tabs.tabs("option", "active", index);
-                }
-            }
-        });    
-    });
-
-</script>
 <!-- /wp:html -->

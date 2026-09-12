@@ -36,7 +36,7 @@ function archreactor_tabs_assets() {
     // Load standard jQuery UI styling from a public CDN
     wp_enqueue_style(
         'jquery-ui-cdn-styles',
-        "https://code.jquery.com/ui/{$ui_version}/themes/base/jquery-ui.css",
+        "//code.jquery.com/ui/{$ui_version}/themes/base/jquery-ui.css",
         array(),
         $ui_version
     );

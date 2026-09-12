@@ -25,43 +25,24 @@ class ArchReactorRoster
         return self::rosterfile($atts["file"]);
     }
 
-    private static function roster_data()
-    {
-        $fails = \Civi\Api4\Activity::get(FALSE)
-            ->addSelect('subject', 'activity_date_time')
-            ->addWhere('activity_type_id', '=', 69)
-            ->addWhere('status_id', '=', 3)
-            ->addOrderBy('activity_date_time', 'DESC')
-            ->setLimit(10)
-            ->execute();
-        $activities = \Civi\Api4\Activity::get(FALSE)
-            ->addSelect('contact.sort_name', 'subject', 'activity_date_time')
-            ->addJoin('Contact AS contact', 'LEFT', 'ActivityContact', ['contact.record_type_id', '=', 1]) //1 limits the contact type on the activity
-            ->addWhere('activity_date_time', '>', '-6 months')
-            ->addWhere('activity_type_id', '=', 69) //69=RFID 
-            ->addWhere('status_id', '=', 2)
-            ->addOrderBy('activity_date_time', 'DESC')
-            ->execute();
-
-        return array('fails' => $fails, 'activities' => $activities);
-    }
-
     public static function render_rfid()
     {
         $cid = CRM_Core_Session::singleton()->getLoggedInContactID();
         //no contact?
         if ($cid == null) return null;
 
-        $data = self::roster_data();
+        $data = ArchReactorRosterManager::rfid_data();
         $fails = $data['fails'];
         $activities = $data['activities'];
 
+        $timezone = new DateTimeZone('America/Chicago');
+        $date = new DateTime('now', $timezone);
         ob_start();
 ?>
         
     <div>
         Last 10 failures and all lockout access last 6 months <br />
-        Last updated: <?php echo date("Y-m-d H:i:s"); ?>
+        Last updated: <?php echo $date->format("Y-m-d H:i:s"); ?>
     </div>
     <div style="display: flex; gap: 20px;">
     <?php

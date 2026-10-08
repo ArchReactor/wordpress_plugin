@@ -196,6 +196,9 @@ class ArchReactorRosterManager {
                     } else if($m['membership_type_id'] === 3) { //assisted 
                         $contacts[$c]['membership_type'] = "Assisted";
                         $membership_totals['assisted']++;
+                    } else if($m['membership_type_id'] === 6) { //household 
+                        $contacts[$c]['membership_type'] = "Household";
+                        $membership_totals['full']++;
                     } else {
                         $contacts[$c]['membership_type'] = $m['membership_type_id:name'];
                     }

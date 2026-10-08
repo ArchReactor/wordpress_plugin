@@ -24,7 +24,14 @@ if ( ! defined( 'ABSPATH' ) ) {
         </ul>
 
         <div id="active">
-            <?php echo ArchReactorRoster::rosterfile('memberships.txt'); ?>
+            <div>
+                Last updated: <span id="active_updated"></span>
+                &nbsp; <button id="refresh-active" type="button">Refresh</button> <br />
+                Totals Full: <span id="active_full"></span> Supporting: <span id="active_supporting"></span> Assisted: <span id="active_assisted"></span> Total: <span id="active_total"></span>
+            </div>
+            <div style="display: flex; gap: 20px;">
+                <table id='rosteractive' class='ux-cv-listing civicrm-ux-roster'><thead></thead><tbody></tbody></table>
+            </div>
         </div>
         
         <div id="new">
@@ -32,11 +39,23 @@ if ( ! defined( 'ABSPATH' ) ) {
         </div>
 
         <div id="grace">
-            <?php echo ArchReactorRoster::rosterfile('grace_memberships.txt'); ?>
+            <div>
+                Memberships in Grace.  Last updated: <span id="grace_updated"></span>
+                &nbsp; <button id="refresh-grace" type="button">Refresh</button>
+            </div>
+            <div style="display: flex; gap: 20px;">
+                <table id='rostergrace' class='ux-cv-listing civicrm-ux-roster'><thead></thead><tbody></tbody></table>
+            </div>
         </div>
 
         <div id="expired">
-            <?php echo ArchReactorRoster::rosterfile('expired_memberships.txt'); ?>
+            <div>
+                Expired or Cancelled Memberships.  Last updated: <span id="expired_updated"></span>
+                &nbsp; <button id="refresh-expired" type="button">Refresh</button>
+            </div>
+            <div style="display: flex; gap: 20px;">
+                <table id='rosterexpired' class='ux-cv-listing civicrm-ux-roster'><thead></thead><tbody></tbody></table>
+            </div>
         </div>
 
         <div id="rfid">

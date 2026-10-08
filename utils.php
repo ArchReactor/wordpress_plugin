@@ -31,4 +31,20 @@ class ArchReactorUtils {
 
         return $html;
     }
+
+    public static function formatMinutesToHoursMinutes($minutes) {
+        $hours = intdiv($minutes, 60);
+        $remaining_minutes = $minutes % 60;
+
+        // Format as hh:mm with leading zeros
+        return sprintf('%02d:%02d', $hours, $remaining_minutes);
+    }
+
+    public static function dateMonthDifference($startDate, $endDate) {
+
+        $yearsDiff = (int)$endDate->format('Y') - (int)$startDate->format('Y');
+        $monthsDiff = (int)$endDate->format('m') - (int)$startDate->format('m');
+
+        return ($yearsDiff * 12) + $monthsDiff;
+    }
 }

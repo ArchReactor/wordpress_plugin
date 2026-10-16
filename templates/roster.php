@@ -25,22 +25,33 @@ if ( ! defined( 'ABSPATH' ) ) {
 
         <div id="active">
             <div>
-                Last updated: <span id="active_updated"></span>
+                Last updated: <span id="active_updated">...</span>
                 &nbsp; <button id="refresh-active" type="button">Refresh</button> <br />
-                Totals Full: <span id="active_full"></span> Supporting: <span id="active_supporting"></span> Assisted: <span id="active_assisted"></span> Total: <span id="active_total"></span>
+                Totals Full: <span id="active_full">...</span> Supporting: <span id="active_supporting">...</span> Assisted: <span id="active_assisted">...</span> Total: <span id="active_total">...</span>
             </div>
             <div style="display: flex; gap: 20px;">
                 <table id='rosteractive' class='ux-cv-listing civicrm-ux-roster'><thead></thead><tbody></tbody></table>
             </div>
         </div>
-        
+
         <div id="new">
-            <?php echo ArchReactorRoster::rosterfile('new_memberships.txt'); ?>
+            <div>
+                Last updated: <span id="newmem_updated">...</span>
+                &nbsp; <button id="refresh-newmem" type="button">Refresh</button> <br />
+                Checking new members since: <span id="newmem_since">...</span> <br />
+                Members without emails since: <span id="newmem_noemail">...</span>
+            </div>
+            <div style="display: flex; gap: 20px;">
+                <form action="/scripts/orientationemail.php" method="post">
+                    <table id='rosternewmem' class='ux-cv-listing civicrm-ux-roster'><thead></thead><tbody></tbody></table>
+                    <button style="float:right" type="submit">Send Orientation Email</button>
+                </form>
+            </div>
         </div>
 
         <div id="grace">
             <div>
-                Memberships in Grace.  Last updated: <span id="grace_updated"></span>
+                Memberships in Grace.  Last updated: <span id="grace_updated">...</span>
                 &nbsp; <button id="refresh-grace" type="button">Refresh</button>
             </div>
             <div style="display: flex; gap: 20px;">
@@ -50,7 +61,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
         <div id="expired">
             <div>
-                Expired or Cancelled Memberships.  Last updated: <span id="expired_updated"></span>
+                Expired or Cancelled Memberships.  Last updated: <span id="expired_updated">...</span>
                 &nbsp; <button id="refresh-expired" type="button">Refresh</button>
             </div>
             <div style="display: flex; gap: 20px;">
@@ -65,8 +76,8 @@ if ( ! defined( 'ABSPATH' ) ) {
             </p>
 
             <div>
-                Last <span id="rfid_nfails"></span> failures and all lockout access last <span id="rfid_nmonths"></span> months <br />
-                Last updated: <span id="rfid_updated"></span>
+                Last <span id="rfid_nfails">...</span> failures and all lockout access last <span id="rfid_nmonths">...</span> months <br />
+                Last updated: <span id="rfid_updated">...</span>
             </div>
             <div style="display: flex; gap: 20px;">
                 <table id='rosterrfidfail' class='ux-cv-listing civicrm-ux-roster'><thead></thead><tbody></tbody></table>

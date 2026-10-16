@@ -2,6 +2,7 @@ var $tabs;
 var $activeTable;
 var $expiredTable;
 var $graceTable;
+var $newMemTable;
 var $rfidFailTable;
 var $rfidTable;
 
@@ -99,6 +100,43 @@ jQuery(document).ready(function($) {
         archreactor_roster_grace();
     });
 
+    $('#rosternewmem').addClass("cell-border").addClass("compact").addClass("stripe");
+    $newMemTable = $('#rosternewmem').DataTable({
+        paging: false,
+        searching: false,
+        ordering: false,
+        layout: {
+            bottomStart: null,
+        },
+        columnDefs: [
+            { className: "dt-nowrap", "targets": [ 0,1,2, 3 ] },
+            { "targets": -1, data: null, //uses full row data
+                render: function (data, type, row) {
+                    if (row.emailed_date !== '') {
+                        return '<span>' + row.emailed_date + '</span>';
+                    } else if(row.orientation) {
+                        return '<input type="checkbox" name="email[]" value="' + row.email + '" class="row-checkbox">';
+                    } else {
+                        return '<input type="checkbox" name="email[]" value="' + row.email + '" checked="checked" class="row-checkbox">';
+                    }
+                }
+            }
+        ],
+        columns: [
+            { title: 'Member', data: 'sort_name' },
+            { title: 'Email', data: 'email' },
+            { title: 'Membership', data: 'membership_type' },
+            { title: 'Join Date', data: 'join_date' },
+            { title: 'Member Agreement', data: 'membership_agreement' },
+            { title: 'Liability Waiver', data: 'liability_waiver' },
+            { title: 'Attended Orientation', data: 'orientation' },
+            { title: 'Send Email' }
+        ],
+    });
+    $('#refresh-newmem').on('click', function() {
+        archreactor_roster_newmem();
+    });
+
     $('#rosterrfidfail').addClass("cell-border").addClass("compact").addClass("stripe");
     $rfidFailTable = $('#rosterrfidfail').DataTable({
         paging: false,
@@ -167,6 +205,9 @@ jQuery(document).ready(function($) {
                 case "#grace":
                     archreactor_roster_grace();
                     break;
+                case "#new":
+                    archreactor_roster_newmem();
+                    break;
                 case '#rfid':
                     archreactor_roster_rfid();
                     break;
@@ -178,6 +219,11 @@ jQuery(document).ready(function($) {
     function archreactor_roster_active() {
         $('#refresh-active').prop('disabled', true).text('Refreshing...');
         $activeTable.clear().draw();
+        $('#active_updated').text('...');
+        $('#active_full').text('...');
+        $('#active_supporting').text('...');
+        $('#active_assisted').text('...');
+        $('#active_total').text('...');
         console.log('archreactor_roster_active called', new Date().toLocaleTimeString());
         $.ajax({
             url: archreactor_roster_vars.ajaxurl,
@@ -198,7 +244,12 @@ jQuery(document).ready(function($) {
                 $('#refresh-active').prop('disabled', false).text('Refresh');
                 console.log('archreactor_roster_active finished', new Date().toLocaleTimeString());
             },
-            error: function() {
+            error: function(xhr) {
+                if (xhr.status === 403) {
+                    alert("Session invalid, refresh the page.");
+                } else {
+                    console.error("Another error occurred: " + xhr.status);
+                }
                 $('#refresh-active').prop('disabled', false).text('Refresh');
             }
         });
@@ -207,6 +258,7 @@ jQuery(document).ready(function($) {
     function archreactor_roster_expired() {
         $('#refresh-expired').prop('disabled', true).text('Refreshing...');
         $expiredTable.clear().draw();
+        $('#expired_updated').text('...');
         //console.log('archreactor_roster_expired called', new Date().toLocaleTimeString());
         $.ajax({
             url: archreactor_roster_vars.ajaxurl,
@@ -223,7 +275,12 @@ jQuery(document).ready(function($) {
                 $('#refresh-expired').prop('disabled', false).text('Refresh');
                 //console.log('archreactor_roster_expired finished', new Date().toLocaleTimeString());
             },
-            error: function() {
+            error: function(xhr) {
+                if (xhr.status === 403) {
+                    alert("Session invalid, refresh the page.");
+                } else {
+                    console.error("Another error occurred: " + xhr.status);
+                }
                 $('#refresh-expired').prop('disabled', false).text('Refresh');
             }
         });
@@ -232,6 +289,7 @@ jQuery(document).ready(function($) {
     function archreactor_roster_grace() {
         $('#refresh-grace').prop('disabled', true).text('Refreshing...');
         $graceTable.clear().draw();
+        $('#grace_updated').text('...');
         //console.log('archreactor_roster_grace called', new Date().toLocaleTimeString());
         $.ajax({
             url: archreactor_roster_vars.ajaxurl,
@@ -248,16 +306,59 @@ jQuery(document).ready(function($) {
                 $('#refresh-grace').prop('disabled', false).text('Refresh');
                 //console.log('archreactor_roster_grace finished', new Date().toLocaleTimeString());
             },
-            error: function() {
+            error: function(xhr) {
+                if (xhr.status === 403) {
+                    alert("Session invalid, refresh the page.");
+                } else {
+                    console.error("Another error occurred: " + xhr.status);
+                }
                 $('#refresh-grace').prop('disabled', false).text('Refresh');
             }
         });
     }
     
+    function archreactor_roster_newmem() {
+        $('#refresh-newmem').prop('disabled', true).text('Refreshing...');
+        $newMemTable.clear().draw();
+        $('#newmem_updated').text('...');
+        $('#newmem_since').text('...');
+        $('#newmem_noemail').text('...');
+        console.log('archreactor_roster_newmem called', new Date().toLocaleTimeString());
+        $.ajax({
+            url: archreactor_roster_vars.ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'archreactor_roster_newmem',
+                security: archreactor_roster_vars.nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    $newMemTable.rows.add(response.data.newmem).columns.adjust().draw();
+                    $('#newmem_updated').text(response.data.updated);
+                    $('#newmem_since').text(response.data.members_since);
+                    $('#newmem_noemail').text(response.data.orientation_since);
+                }
+                $('#refresh-newmem').prop('disabled', false).text('Refresh');
+                console.log('archreactor_roster_newmem finished', new Date().toLocaleTimeString());
+            },
+            error: function(xhr) {
+                if (xhr.status === 403) {
+                    alert("Session invalid, refresh the page.");
+                } else {
+                    console.error("Another error occurred: " + xhr.status);
+                }
+                $('#refresh-newmem').prop('disabled', false).text('Refresh');
+            }
+        });
+    }
+
     function archreactor_roster_rfid() {
         $('#refresh-rfid').prop('disabled', true).text('Refreshing...');
         $rfidFailTable.clear().draw();
         $rfidTable.clear().draw();
+        $('#rfid_updated').text('...');
+        $('#rfid_nfails').text('...');
+        $('#rfid_nmonths').text('...');
 
         $.ajax({
             url: archreactor_roster_vars.ajaxurl,
@@ -276,7 +377,12 @@ jQuery(document).ready(function($) {
                 }
                 $('#refresh-rfid').prop('disabled', false).text('Refresh');
             },
-            error: function() {
+            error: function(xhr) {
+                if (xhr.status === 403) {
+                    alert("Session invalid, refresh the page.");
+                } else {
+                    console.error("Another error occurred: " + xhr.status);
+                }
                 $('#refresh-rfid').prop('disabled', false).text('Refresh');
             }
         });

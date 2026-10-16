@@ -16,6 +16,7 @@ class ArchReactorRosterManager {
         add_action('wp_ajax_archreactor_roster_active', [__CLASS__, 'active_json']);
         add_action('wp_ajax_archreactor_roster_expired', [__CLASS__, 'expired_json']);
         add_action('wp_ajax_archreactor_roster_grace', [__CLASS__, 'grace_json']);
+        add_action('wp_ajax_archreactor_roster_newmem', [__CLASS__, 'newmem_json']);
         add_action('wp_ajax_archreactor_roster_rfid', [__CLASS__, 'rfid_json']);
         add_action('wp_enqueue_scripts', function() {
             wp_enqueue_script('archreactor-roster', plugins_url('js/roster.js', __FILE__), ['jquery'], '1.0', true);
@@ -105,6 +106,20 @@ class ArchReactorRosterManager {
         $wp_query->is_404         = false;
 
         return array( $post );
+    }
+
+    public static function membership_type_simplify($membership_type_id, $other) {
+        if($membership_type_id === 1 || $membership_type_id === 4) { //full or family membership
+            return "Full";
+        } else if($membership_type_id === 2 || $membership_type_id === 5) { //supporting or supporting family membership
+            return "Supporting";
+        } else if($membership_type_id === 3) { //assisted 
+            return "Assisted";
+        } else if($membership_type_id === 6) { //household 
+            return "Household";
+        } else {
+            return $other;
+        }
     }
 
     public static function active_data() {
@@ -263,7 +278,7 @@ class ArchReactorRosterManager {
             $c = array_find_key($contacts, fn($contact) => $contact['id'] === $m['contact_id']);
             if ($c !== false) {
                 if(!isset($contacts[$c]['membership_type']) || $contacts[$c]['membership_type'] === '??') {
-                    $contacts[$c]['membership_type'] = $m['membership_type_id:name'];
+                    $contacts[$c]['membership_type'] = $m['membership_type_id'];
                     $contacts[$c]['end_date'] = $m['end_date'];
                 }
             }
@@ -329,6 +344,87 @@ class ArchReactorRosterManager {
         }
 
         $data = self::grace_data();
+        wp_send_json_success($data);
+    }
+
+    public static function newmem_data() {
+        $newmem_members = \Civi\Api4\Contact::get(FALSE)
+            ->addSelect("id", "display_name", "sort_name", "File_Uploads.Membership_Agreement_Initials", "File_Uploads.Liability_Waiver_Initials", "email_primary.email", "File_Uploads.Attended_Orientation")
+            ->addWhere('groups', 'IN', 40) //40=active Members
+            ->addOrderBy('id', 'DESC')
+            ->execute();
+
+        $contacts = []; //we'll fill this with members that match the criteria below
+
+        $ids = array_map(function($row) { return $row['id']; }, (array)$newmem_members);
+        #error_log("newmem_members: ids=" . count($ids));
+        $all_memberships = \Civi\Api4\Membership::get(FALSE)
+            ->addSelect("id", "contact_id", "join_date", "start_date", "membership_type_id", "membership_type_id:name")
+            ->addWhere('contact_id', 'IN', $ids)
+            ->addWhere('status_id', '<', 4) //new, current, grace
+            ->addOrderBy('contact_id', 'ASC')
+            ->addOrderBy('id', 'DESC')
+            ->execute();
+        foreach ($all_memberships as $m) {
+            #error_log("Checking membership for contact: ".$m['contact_id']);
+            $n = array_find_key((array)$newmem_members, fn($contact) => $contact['id'] === $m['contact_id']);
+            #error_log("found newmem_members: ".$n);
+            $c = array_find_key($contacts, fn($contact) => $contact['id'] === $m['contact_id']);
+            #error_log("found contact: ".$c);
+            if ($n !== false) {
+                if(!$c || !isset($contacts[$c]['membership_type']) || $contacts[$c]['membership_type'] === '??') {
+                    #error_log("checking: ".print_r($m, true));
+                    $m['join_date'] = $m['join_date'] ?: $m['start_date']; //use join date if available, otherwise use start date
+                    if(new DateTime($m['join_date']) > (new DateTime('-3 months -1 day'))) { //only include members that joined in the last 3 months
+                        $activities = \Civi\Api4\Activity::get(FALSE) //this has to be in a loop due to how the target ids are stored, IN cannot be used
+                            ->addSelect('activity_date_time')
+                            ->addWhere('target_contact_id', 'CONTAINS', $newmem_members[$n]['id'])
+                            ->addWhere('subject', '=', 'New Member Orientation')
+                            ->addOrderBy('activity_date_time', 'ASC')
+                            ->setLimit(5)
+                            ->execute();
+                        if(count((array)$activities) > 0 && new DateTime($activities[0]['activity_date_time']) > new DateTime('-3 weeks')) {
+                            $emailed_date = $activities[0]['activity_date_time'];
+                        } else {
+                            $emailed_date = '';
+                        }
+                        $contacts[] = [
+                            'id' => $newmem_members[$n]['id'],
+                            'display_name' => $newmem_members[$n]['display_name'],
+                            'sort_name' => $newmem_members[$n]['sort_name'],
+                            'membership_agreement' => $newmem_members[$n]['File_Uploads.Membership_Agreement_Initials'],
+                            'liability_waiver' => $newmem_members[$n]['File_Uploads.Liability_Waiver_Initials'],
+                            'email' => $newmem_members[$n]['email_primary.email'],
+                            'orientation' => $newmem_members[$n]['File_Uploads.Attended_Orientation'],
+                            'membership_type' => self::membership_type_simplify($m['membership_type_id'], $m['membership_type_id:name']),
+                            'join_date' => $m['join_date'],
+                            'emailed_date' => $emailed_date
+                        ];
+                    }
+                }
+            }
+        }
+
+        usort($contacts, fn($a, $b) => $b['id'] > $a['id']); 
+        $date = new \DateTime();
+        return [
+            'newmem' => $contacts,
+            'updated' => $date->format("Y-m-d g:i:s A"),
+            'members_since' => (new DateTime('-3 months -1 day'))->format("Y-m-d"),
+            'orientation_since' => (new DateTime('-15 days'))->format("Y-m-d")
+        ];
+    }
+
+    public static function newmem_json()
+    {
+        //verify nonce for security
+        check_ajax_referer('archreactor_roster_nonce', 'security');
+
+        if (!current_user_can('membership-management')) {
+            wp_send_json_error('Unauthorized');
+        }
+
+        $data = self::newmem_data();
         wp_send_json_success($data);
     }
 
